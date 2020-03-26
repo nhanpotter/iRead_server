@@ -5,7 +5,7 @@ from .utils import check_valid_year
 
 # Create your models here.
 class Genre(models.Model):
-    name = models.CharField(max_length=500)
+    name = models.CharField(max_length=1000)
 
     def __str__(self):
         return self.name
@@ -15,20 +15,20 @@ class Genre(models.Model):
 
 class Book(models.Model):
     # Base information
-    uid = models.CharField(max_length=500)
-    book_title = models.CharField(max_length=500)
-    subject = models.CharField(max_length=500)
+    uid = models.CharField(max_length=1000)
+    book_title = models.CharField(max_length=1000)
+    subject = models.CharField(max_length=1000)
     summary = models.TextField()
-    original_publisher = models.CharField(max_length=500)
-    digital_publisher = models.CharField(max_length=500)
-    item_format = models.CharField(max_length=500)
-    language = models.CharField(max_length=500)
-    item_copyright = models.CharField(max_length=500)
-    author_name = models.CharField(max_length=500)
-    published = models.CharField(max_length=500, null=True)
-    resource_url = models.CharField(max_length=500)
-    cover = models.CharField(max_length=500)
-    thumbnail = models.CharField(max_length=500)
+    original_publisher = models.CharField(max_length=1000)
+    digital_publisher = models.CharField(max_length=1000)
+    item_format = models.CharField(max_length=1000)
+    language = models.CharField(max_length=1000)
+    item_copyright = models.CharField(max_length=1000)
+    author_name = models.CharField(max_length=1000)
+    published = models.CharField(max_length=1000, null=True)
+    resource_url = models.CharField(max_length=1000)
+    cover = models.CharField(max_length=1000)
+    thumbnail = models.CharField(max_length=1000)
 
     # Additional Info
     genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, null=True, blank=True)
