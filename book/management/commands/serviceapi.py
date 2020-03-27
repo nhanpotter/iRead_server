@@ -35,11 +35,9 @@ def web_scraping(resource_url):
         filtered_data['resource_url'] = ""
 
     title = tree.xpath('//body/div[2]/div[3]/div[2]/div[1]/h3/a/@title')[0]
-    print(title)
     filtered_data['book_title'] = title
 
     summary = tree.xpath('//p[@class="detail-description"]/text()')[0]
-    print(summary)
     filtered_data['summary'] = summary
     return filtered_data
 
