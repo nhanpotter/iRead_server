@@ -1,7 +1,7 @@
 import requests, random
 from lxml import html
-
-from .models import Book, Genre
+from django.core.management.base import BaseCommand, CommandError
+from book.models import Book, Genre
 
 DATA_API = 'https://data.gov.sg/api/action/datastore_search?resource_id=835e630b-a03f-4f77-baa6-9c69c91883f2'
 
@@ -18,27 +18,40 @@ def is_downloadable(url):
         return False
     return True
 
-def get_downloadable_resource_page(resource_url):
+def web_scraping(resource_url):
     """
     Get downloadable URL for the book
     """
+    filtered_data = {}
     page = requests.get(resource_url)
-    tree = html.fromstring(page.content)
+    tree = html.fromstring(page.text)
     download = tree.xpath('//a[@title="Download now"]/@href')
     download_url = 'https:' + download[0]
     if is_downloadable(download_url):
         print("Success")
-        return download_url
+        filtered_data['resource_url'] = download_url
     else:
         print("Fail")
-        return ""
+        filtered_data['resource_url'] = ""
+
+    title = tree.xpath('//body/div[2]/div[3]/div[2]/div[1]/h3/a/@title')[0]
+    print(title)
+    filtered_data['book_title'] = title
+
+    summary = tree.xpath('//p[@class="detail-description"]/text()')[0]
+    print(summary)
+    filtered_data['summary'] = summary
+    return filtered_data
 
 def refine_book_data(record):
     """
     Refine all data necessary for the book
     """
     resource_url = record['resource_url']
-    record['resource_url'] = get_downloadable_resource_page(resource_url)
+    filtered_data = web_scraping(resource_url)
+    record['book_title'] = filtered_data['book_title']
+    record['summary'] = filtered_data['summary']
+    record['resource_url'] = filtered_data['resource_url']
     record['item_format'] = record.pop('format')
     record['item_copyright'] = record.pop('copyright')
     record['id'] = record.pop('_id')
@@ -64,5 +77,14 @@ def get_book_data():
     records = get_data['result']['records']
     for record in records:
         record = refine_book_data(record)
-        Book.objects.create(**record)
-        
+        try:
+            Book.objects.create(**record)
+        except:
+            print("This book is already created")
+
+
+class Command(BaseCommand):
+    help = 'Get book data from API'
+
+    def handle(self, *args, **options):
+        get_book_data()

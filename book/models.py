@@ -15,7 +15,7 @@ class Genre(models.Model):
 
 class Book(models.Model):
     # Base information
-    uid = models.CharField(max_length=500)
+    uid = models.CharField(max_length=500, unique=True)
     book_title = models.CharField(max_length=500)
     subject = models.CharField(max_length=500)
     summary = models.TextField()
