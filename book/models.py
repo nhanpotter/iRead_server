@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 
 from .utils import check_valid_year
+from django.utils import timezone
+import pickle
 
 # Create your models here.
 class Genre(models.Model):
@@ -78,14 +80,25 @@ class Rating(models.Model):
         (5, 5),
     ]
     rating = models.IntegerField()
+    time = models.DateTimeField()
 
     # Mapping
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['book', 'user'], name='unique user rating')
         ]
 
+class MachineLearning(models.Model):
+    _value = models.BinaryField()
 
+    def set_data(self, data):
+        self._value = pickle.dumps(data)
+
+    def get_data(self):
+        return pickle.loads(self._value)
+
+    value = property(get_data, set_data)
+    
