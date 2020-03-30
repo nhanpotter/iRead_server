@@ -166,5 +166,5 @@ DATABASES['default'].update(db_from_env)
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # CELERY STUFF
-CELERY_BROKER_URL = os.environ['REDIS_URL']
+BROKER_URL = os.environ['REDIS_URL']
 CELERY_TIMEZONE = 'Asia/Singapore'
