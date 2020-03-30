@@ -60,3 +60,12 @@ class RatingAPIView(APIView):
             serializer.save(user=request.user, book=book)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class RecommendAPIView(APIView):
+    def get(self, request, format=None):
+        ml_obj = MachineLearning.objects.first()
+        rec_model = ml_obj.value["model"]
+        user_id = request.user.id
+        recommend_list = rec_model.recommend_user(user_id)
+        serializer = BookSerializer(recommend_list, many=True)
+        return Response(serializer.data)
