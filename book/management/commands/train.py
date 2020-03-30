@@ -22,7 +22,7 @@ class DataPrep:
     @staticmethod
     def get_book_list():
         book_obj_list = DataPrep.get_book_obj_list()
-        return [x[0]-1 for x in book_obj_list]
+        return [x[0] for x in book_obj_list]
 
     @staticmethod
     def get_feature_list():
@@ -32,23 +32,23 @@ class DataPrep:
     @staticmethod
     def get_rating_list():
         rating_list = Rating.objects.values_list('user__id', 'book__id', 'rating')
-        return list(map(lambda x: (x[0], x[1]-1, x[2]), rating_list))
+        return list(map(lambda x: (x[0], x[1], x[2]), rating_list))
 
     @staticmethod
     def get_rating_list_from_checkpoint(checkpoint):
         rating_queryset = Rating.objects.filter(time__gte=checkpoint)
         rating_list = rating_queryset.values_list('user__id', 'book__id', 'rating')
-        return list(map(lambda x: (x[0], x[1]-1, x[2]), rating_list))
+        return list(map(lambda x: (x[0], x[1], x[2]), rating_list))
 
     @staticmethod
     def create_features():
         book_obj_list = DataPrep.get_book_obj_list()
-        return [(x[0]-1, [x[1]]) for x in book_obj_list]
+        return [(x[0], [x[1]]) for x in book_obj_list]
 
     @staticmethod
     def get_readed_book_by_user(user_id):
         rating_list = list(Rating.objects.filter(user__id=user_id))
-        book_list_id = [x.book.id-1 for x in rating_list]
+        book_list_id = [x.book.id for x in rating_list]
         return book_list_id
 
     @staticmethod
@@ -56,7 +56,7 @@ class DataPrep:
         book_list_id = DataPrep.get_readed_book_by_user(user_id)
         book_queryset = Book.objects.exclude(id__in=book_list_id)
         unreaded_books = list(book_queryset.values_list('id', flat=True))
-        return list(map(lambda x: x-1, unreaded_books))
+        return list(map(lambda x: x, unreaded_books))
 
 
 class DataFit:
@@ -83,6 +83,14 @@ class DataFit:
         rating_list = DataPrep.get_rating_list_from_checkpoint(checkpoint)
         interactions, weights = self.dataset.build_interactions(rating_list)
         return interactions, weights
+
+    def get_user_mapping(self):
+        user_id_map, user_feature_map, item_id_map, item_feature_map = self.dataset.mapping()
+        return user_id_map
+
+    def get_book_mapping(self):
+        user_id_map, user_feature_map, item_id_map, item_feature_map = self.dataset.mapping()
+        return item_id_map
 
     @staticmethod
     def fit_evaluate(test_percentage=0.1):
@@ -123,46 +131,61 @@ class RecModel:
         )
 
 
-    def recommend_user(self, user_id, num_prediction=12):
-        unread_books = DataPrep.get_unread_book_by_user(user_id)
-        book_list = DataPrep.get_book_list()
+    def recommend_user(self, user_id, user_mapping, book_mapping, num_prediction=12):
+        def get_key(mapping, val):
+            for key, value in mapping.items():
+                if val == value:
+                    return key
+            raise Exception("Key Doesn't exists")
 
-        score = self.model.predict(user_id, item_ids=unread_books, item_features=self.books_features)
-        sorted_by_score = [x for _, x in sorted(zip(score, unread_books), key=lambda pair: pair[0])]
+        unread_books = DataPrep.get_unread_book_by_user(user_id)
+        internal_unread_books = list(map(lambda id: book_mapping[id], unread_books))
+
+        score = self.model.predict(user_mapping[user_id], item_ids=internal_unread_books, item_features=self.books_features)
+        sorted_by_score = [x for _, x in sorted(zip(score, internal_unread_books), key=lambda pair: pair[0])]
 
         try: 
             recommended = sorted_by_score[:num_prediction]
         except:
-            recommend = sorted_by_score
-        recommended_books = map(lambda book_id: Book.objects.get(id=book_id+1), recommended)
+            recommended = sorted_by_score
+        recommended_books_id = list(map(lambda id: get_key(book_mapping, id), recommended))
+        recommended_books = list(map(lambda id: Book.objects.get(id=id), recommended_books_id))
 
         return recommended_books
 
 
-    def recommend_user_verbose(self, user_id, num_prediction=12):
-        unread_books = DataPrep.get_unread_book_by_user(user_id)
-        book_list = DataPrep.get_book_list()
+    def recommend_user_verbose(self, user_id, user_mapping, book_mapping, num_prediction=12):
+        def get_key(mapping, val):
+            for key, value in mapping.items():
+                if val == value:
+                    return key
+            raise Exception("Key Doesn't exists")
 
-        score = self.model.predict(user_id, item_ids=unread_books, item_features=self.books_features)
-        sorted_by_score = [x for _, x in sorted(zip(score, unread_books), key=lambda pair: pair[0])]
+        unread_books = DataPrep.get_unread_book_by_user(user_id)
+        internal_unread_books = list(map(lambda id: book_mapping[id], unread_books))
+
+        score = self.model.predict(user_mapping[user_id], item_ids=internal_unread_books, item_features=self.books_features)
+        sorted_by_score = [x for _, x in sorted(zip(score, internal_unread_books), key=lambda pair: pair[0])]
 
         try: 
             recommended = sorted_by_score[:num_prediction]
         except:
-            recommend = sorted_by_score
+            recommended = sorted_by_score
+        recommended_books_id = list(map(lambda id: get_key(book_mapping, id), recommended))
+        
         
         readed_books = DataPrep.get_readed_book_by_user(user_id)
         print('Read Books: ')
         for book_id in readed_books:
-            book_obj = Book.objects.get(id=book_id+1)
+            book_obj = Book.objects.get(id=book_id)
             print('\tBook Name: '+book_obj.book_title)
             print('\t\tGenre: ' + book_obj.genre.name)
-            rating_obj = Rating.objects.get(book=book_id+1, user__id=user_id)
+            rating_obj = Rating.objects.get(book=book_id, user__id=user_id)
             print('\t\tOwn Rating: '+ str(rating_obj.rating))
             print('\t\tOverall Rating: '+ str(book_obj.overall_rating))
         print()
 
-        recommended_books = map(lambda book_id: Book.objects.get(id=book_id+1), recommended)
+        recommended_books = list(map(lambda id: Book.objects.get(id=id), recommended_books_id))
         print('Recommend:')
         for book_obj in recommended_books:
             print('\tBook Name: '+book_obj.book_title)
@@ -205,15 +228,15 @@ def new_train():
 def train():
     user_list = User.objects.filter(is_staff=False).values_list('id', flat=True)
     book_obj_list = Book.objects.values_list('id', 'genre__id')
-    book_list = [x[0]-1 for x in book_obj_list]
+    book_list = [x[0] for x in book_obj_list]
     feature_list = [x[1] for x in book_obj_list]
     dataset = Dataset()
     dataset.fit(users=user_list, items=book_list, item_features=feature_list)
 
     rating_list = Rating.objects.values_list('user__id', 'book__id', 'rating')
-    rating_list = list(map(lambda x: (x[0], x[1]-1, x[2]), rating_list))
+    rating_list = list(map(lambda x: (x[0], x[1], x[2]), rating_list))
     (interactions, weights) = dataset.build_interactions(rating_list)
-    item_features = dataset.build_item_features([(x[0]-1, [x[1]]) for x in book_obj_list])
+    item_features = dataset.build_item_features([(x[0], [x[1]]) for x in book_obj_list])
     model = LightFM(loss='warp')
     model.fit(interactions, item_features=item_features, sample_weight=weights, epochs=50, num_threads=2)
     print(item_features.shape)
@@ -221,7 +244,7 @@ def train():
     book_queryset = Book.objects.all()
     rating_user_list = list(Rating.objects.filter(user__id=10))
     print(rating_user_list)
-    book_user_list = [x.book.id-1 for x in rating_user_list]
+    book_user_list = [x.book.id for x in rating_user_list]
     book_queryset = book_queryset.exclude(id__in=book_user_list)
 
     book_list_id = list(book_queryset.values_list('id', flat=True))
@@ -235,7 +258,7 @@ def train():
     rating_test = rating_list[int(len(rating_list)*0.9):]
     (interactions_train, weights_train) = dataset.build_interactions(rating_train)
     (interactions_test, weights_test) = dataset.build_interactions(rating_test)
-    item_features = dataset.build_item_features([(x[0]-1, [x[1]]) for x in book_obj_list])
+    item_features = dataset.build_item_features([(x[0], [x[1]]) for x in book_obj_list])
 
     model = LightFM(loss='warp')
     records = []

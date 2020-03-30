@@ -63,9 +63,19 @@ class RatingAPIView(APIView):
 
 class RecommendAPIView(APIView):
     def get(self, request, format=None):
-        ml_obj = MachineLearning.objects.first()
-        rec_model = ml_obj.value["model"]
-        user_id = request.user.id
-        recommend_list = rec_model.recommend_user(user_id)
+        user = request.user
+        if user.is_staff:
+            return Response(
+                {'error': ['Admin cannot have recommendations']},
+                status=status.HTTP_204_NO_CONTENT
+            )
+
+        ml_obj = MachineLearning.objects.first().value
+        rec_model = ml_obj["model"]
+        data_fit = ml_obj["data"]
+        user_id = user.id
+        user_mapping = data_fit.get_user_mapping()
+        book_mapping = data_fit.get_book_mapping()
+        recommend_list = rec_model.recommend_user(user_id, user_mapping, book_mapping)
         serializer = BookSerializer(recommend_list, many=True)
         return Response(serializer.data)

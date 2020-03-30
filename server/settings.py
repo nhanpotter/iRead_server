@@ -25,7 +25,9 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '02p)rqdf(*a&ax*#4r7sg-l2b2rn2n
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
 
-ALLOWED_HOSTS = ['*', '0.0.0.0']# CELERY STUFF
+ALLOWED_HOSTS = ['*', '0.0.0.0']
+ADMINS = [('Nhan', 'nhanparty@gmail.com')]
+SERVER_EMAIL = os.environ.get('EMAIL_HOST_USER', 'root@localhost')
 
 
 AUTH_API_URL = 'http://iread-server.herokuapp.com/auth/'
@@ -166,5 +168,5 @@ DATABASES['default'].update(db_from_env)
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # CELERY STUFF
-BROKER_URL = os.environ['REDIS_URL']
+BROKER_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
 CELERY_TIMEZONE = 'Asia/Singapore'

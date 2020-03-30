@@ -11,6 +11,7 @@ import pickle
 from book.models import MachineLearning
 import os
 
+logger = get_task_logger(__name__)
 LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
 
 @contextmanager
@@ -39,9 +40,8 @@ def train_model_new_user(self):
     
     interactions, weights, books_features = dataFit.fit()
     new_checkpoint = timezone.now()
-
+    recModel = RecModel(new_checkpoint, books_features)
     recModel.fit(interactions, weights)
-    recModel.set_checkpoint(new_checkpoint)
     to_be_saved = {
         "data": dataFit,
         "model": recModel

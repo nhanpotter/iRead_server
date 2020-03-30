@@ -36,10 +36,10 @@ class Book(models.Model):
     genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return self.book_title
+        return "Title: {0} - Genre: {1}".format(self.book_title, self.genre.name)
 
     def __unicode__(self):
-        return self.book_title
+        return "Title: {0} - Genre: {1}".format(self.book_title, self.genre.name)
 
     def clean(self):
         if self.published is None or not check_valid_year(self.published):
