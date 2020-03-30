@@ -1,4 +1,6 @@
-from celery import Celery
+from __future__ import absolute_import, unicode_literals
+
+from celery import shared_task
 from celery.five import monotonic
 from celery.utils.log import get_task_logger
 from contextlib import contextmanager
@@ -7,11 +9,7 @@ from django.utils import timezone
 from book.management.commands.train import DataPrep, DataFit, RecModel
 import pickle
 from book.models import MachineLearning
-
-logger = get_task_logger(__name__)
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'server.settings')
-
-app = Celery('tasks')
+import os
 
 LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
 
@@ -30,15 +28,16 @@ def memcache_lock():
             # to lessen the chance of releasing an expired lock
             # owned by someone else
             # also don't release the lock if we didn't acquire it
-            cache.delete(lock_id)
+            cache.delete('lock')
 
-@app.task(bind=True)
-def train_model_new_user(self, feed_url):
-    saved_obj = MachineLearning.objects.first().value
+@shared_task(bind=True)
+def train_model_new_user(self):
+    ml_obj = MachineLearning.objects.first()
+    saved_obj = ml_obj.value
     dataFit = saved_obj["data"]
     recModel = saved_obj["model"]
     
-    interactions, weights = dataFit.fit()
+    interactions, weights, books_features = dataFit.fit()
     new_checkpoint = timezone.now()
 
     recModel.fit(interactions, weights)
@@ -55,8 +54,8 @@ def train_model_new_user(self, feed_url):
             ml_obj.value = to_be_saved
             ml_obj.save()       
     
-@app.task(bind=True)
-def train_model_new_rating(self, feed_url):
+@shared_task(bind=True)
+def train_model_new_rating(self):
     ml_obj = MachineLearning.objects.first()
     saved_obj = ml_obj.value
     dataFit = saved_obj["data"]

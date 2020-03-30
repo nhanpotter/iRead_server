@@ -3,6 +3,7 @@ import random
 from django.core.management.base import BaseCommand, CommandError
 from book.models import Rating, Book
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class Command(BaseCommand):
     help = "Create Unreal Users"
@@ -31,7 +32,7 @@ class Command(BaseCommand):
                     new_rating = random.choice(Rating.RATING_CHOICES)[0]
                     Rating.objects.create(
                         rating=new_rating, book=book_list[j], 
-                        user=new_user
+                        user=new_user, time=timezone.now()
                     )
                 print('User {0} created'.format(str(i)))
             except:
