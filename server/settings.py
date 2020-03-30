@@ -26,12 +26,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '02p)rqdf(*a&ax*#4r7sg-l2b2rn2n
 DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
 
 ALLOWED_HOSTS = ['*', '0.0.0.0']# CELERY STUFF
-BROKER_URL = 'redis://localhost:6379'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379'
-CELERY_ACCEPT_CONTENT = ['application/json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'Africa/Nairobi'
+
 
 AUTH_API_URL = 'http://iread-server.herokuapp.com/auth/'
 
