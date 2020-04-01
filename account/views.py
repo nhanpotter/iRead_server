@@ -32,7 +32,7 @@ def reset_password(request, uid, token):
             kwargs = {
                 'uid': uid,
                 'token': token,
-                'password': password,
+                'new_password': password,
             }
             req = requests.post(url, data=kwargs)
             if req.status_code == 400:
