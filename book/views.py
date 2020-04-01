@@ -42,7 +42,7 @@ class RatingAPIView(APIView):
         except Rating.DoesNotExist:
             return Response(
                 {'rating': ['You have not rated this book yet']},
-                status=status.HTTP_204_NO_CONTENT
+                status=status.HTTP_200_OK
             )
         
     def post(self, request, id, format=None):
