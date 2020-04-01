@@ -41,7 +41,7 @@ class RatingAPIView(APIView):
             return Response(serializer.data)
         except Rating.DoesNotExist:
             return Response(
-                {'rating': ['You have not rated this book yet']},
+                {'error': ['You have not rated this book yet']},
                 status=status.HTTP_200_OK
             )
         
