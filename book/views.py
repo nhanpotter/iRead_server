@@ -57,7 +57,7 @@ class RatingAPIView(APIView):
             serializer = RatingSerializer(rating, data=request.data)
         if serializer.is_valid():
             book = Book.objects.get(id=id)
-            serializer.save(user=request.user, book=book)
+            serializer.save(user=request.user, book=book, time=timezone.now())
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

@@ -36,6 +36,7 @@ class CommentSerializer(serializers.Serializer):
 class RatingSerializer(serializers.Serializer):
     book = serializers.PrimaryKeyRelatedField(read_only=True)
     rating = serializers.IntegerField()
+    time = serializers.DateTimeField(read_only=True)
 
     def create(self, validated_data):
         created = Rating(**validated_data)
