@@ -30,7 +30,7 @@ ADMINS = [('Nhan', 'nhanparty@gmail.com')]
 SERVER_EMAIL = os.environ.get('EMAIL_HOST_USER', 'root@localhost')
 
 
-AUTH_API_URL = 'http://iread-server.herokuapp.com/auth/'
+BASE_SERVER_URL = os.environ.get('BASE_SERVER_URL', 'http://127.0.0.1:8000/')
 
 # Application definition
 
@@ -143,14 +143,14 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DJOSER = {
-    'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}', #TODO
-    'USERNAME_RESET_CONFIRM_URL': '#/username/reset/confirm/{uid}/{token}', #TODO
+    'PASSWORD_RESET_CONFIRM_URL': 'account/password/reset/{uid}/{token}', #TODO
     'ACTIVATION_URL': 'account/activate/{uid}/{token}',
     'SEND_ACTIVATION_EMAIL': True,
     'SERIALIZERS': {
         'current_user': 'account.serializers.ActiveUserSerializer',
     },
-    'USER_CREATE_PASSWORD_RETYPE': True
+    'USER_CREATE_PASSWORD_RETYPE': True,
+    'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': True,
 }
 
 # For Email
