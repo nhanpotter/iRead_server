@@ -27,8 +27,8 @@ def reset_password(request, uid, token):
     if request.method == 'POST':
         form = ResetPasswordForm(request.POST)
         if form.is_valid():
-            url = BASE_SERVER_URL + 'auth/users/reset_password_confirm'
-            password = form.cleaned_data['password']
+            url = BASE_SERVER_URL + 'auth/users/reset_password_confirm/'
+            password = form.cleaned_data.get('password')
             kwargs = {
                 'uid': uid,
                 'token': token,
@@ -38,7 +38,8 @@ def reset_password(request, uid, token):
             if req.status_code == 400:
                 error = req.json()
                 form = ResetPasswordForm()
-            return HttpResponse("Reset Password Sucessfully! Thank you")
+            else:
+                return HttpResponse("Reset Password Sucessfully! Thank you")
 
     else:
         form = ResetPasswordForm()
