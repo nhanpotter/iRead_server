@@ -6,6 +6,9 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 
 class Command(BaseCommand):
+    """
+    Note: Disable signal before running this
+    """
     help = "Create Unreal Users"
 
     def add_arguments(self, parser):
@@ -14,7 +17,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         number_of_users = options['number_of_users'][0]
         base_username = "student"
-        book_list = list(Book.objects.all())
+        # book_list = list(Book.objects.all())
         for i in range(1, number_of_users+1):
             try:
                 # Create new user
@@ -26,15 +29,16 @@ class Command(BaseCommand):
                 )
                 new_user.set_password(str(i))
                 new_user.save()
-                # Shuffle Book List and Create Random Rating
-                random.shuffle(book_list)
-                for j in range(random.randint(3, 20)):
-                    new_rating = random.choice(Rating.RATING_CHOICES)[0]
-                    Rating.objects.create(
-                        rating=new_rating, book=book_list[j], 
-                        user=new_user, time=timezone.now()
-                    )
                 print('User {0} created'.format(str(i)))
+                # # Shuffle Book List and Create Random Rating
+                # random.shuffle(book_list)
+                # for j in range(random.randint(3, 20)):
+                #     new_rating = random.choice(Rating.RATING_CHOICES)[0]
+                #     Rating.objects.create(
+                #         rating=new_rating, book=book_list[j], 
+                #         user=new_user, time=timezone.now()
+                    # )
+                
             except:
                 print('Creating Failed')
                 continue
