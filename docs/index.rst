@@ -1,8 +1,3 @@
-.. iRead-server documentation master file, created by
-   sphinx-quickstart on Wed Apr 15 00:04:55 2020.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to iRead-server's documentation!
 ========================================
 
@@ -11,7 +6,10 @@ Welcome to iRead-server's documentation!
    :caption: Contents
 
    introduction
-
+   getting_started
+   auth_endpoints
+   book_endpoints
+   recommendation_system
 
 
 Indices and tables
